@@ -11,13 +11,25 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSchedule(talks);
         });
 
-    searchBar.addEventListener('input', (e) => {
+    function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
+    }
+
+    searchBar.addEventListener('input', debounce((e) => {
         const searchTerm = e.target.value.toLowerCase();
-        const filteredTalks = talks.filter(talk => 
-            talk.category.some(cat => cat.toLowerCase().includes(searchTerm))
-        );
+        const filteredTalks = talks.filter(talk => {
+            const inCategory = talk.category.some(cat => cat.toLowerCase().includes(searchTerm));
+            const inSpeakers = talk.speakers.some(speaker => speaker.toLowerCase().includes(searchTerm));
+            return inCategory || inSpeakers;
+        });
         renderSchedule(filteredTalks);
-    });
+    }, 300));
 
     function renderSchedule(talksToRender) {
         scheduleContainer.innerHTML = '';
